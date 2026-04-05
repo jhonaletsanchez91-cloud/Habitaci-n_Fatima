@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Habitaciones Fátima — Gestión</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface2: #242424;
+    --surface3: #2e2e2e;
+    --gold: #c9a84c;
+    --gold-light: #e8c97a;
+    --gold-dim: rgba(201,168,76,0.15);
+    --text: #f0ece0;
+    --text-dim: #8a8070;
+    --text-mid: #b5ac98;
+    --green: #5aaa78;
+    --red: #d96060;
+    --blue: #5a8fd9;
+    --orange: #d9a05a;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 80px;
+  }
+
+  /* HEADER */
+  .app-header {
+    background: linear-gradient(135deg, #1a1510 0%, #1a1a1a 100%);
+    border-bottom: 1px solid rgba(201,168,76,0.2);
+    padding: 18px 16px 14px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .app-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    color: var(--gold);
+    letter-spacing: 0.5px;
+  }
+  .app-header p {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 2px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  /* BOTTOM NAV */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: #111;
+    border-top: 1px solid #2a2a2a;
+    display: flex;
+    z-index: 200;
+  }
+  .nav-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 4px;
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 9px;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: color 0.2s;
+    gap: 3px;
+  }
+  .nav-btn.active { color: var(--gold); }
+  .nav-btn svg { width: 20px; height: 20px; }
+
+  /* SECTIONS */
+  .section { display: none; padding: 16px; }
+  .section.active { display: block; }
+
+  /* CARDS */
+  .card {
+    background: var(--surface);
+    border: 1px solid #2a2a2a;
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .card-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--gold);
+    margin-bottom: 12px;
+    font-weight: 600;
+  }
+
+  /* SUMMARY GRID */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .summary-card {
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    padding: 14px 12px;
+    border: 1px solid #2a2a2a;
+  }
+  .summary-card .label {
+    font-size: 10px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+  .summary-card .value {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .summary-card .value.green { color: var(--green); }
+  .summary-card .value.red { color: var(--red); }
+  .summary-card .value.gold { color: var(--gold); }
+
+  /* FORMS */
+  .form-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .form-row input, .form-row select, .form-row textarea,
+  input[type="text"], input[type="number"], input[type="date"], select, textarea {
+    background: var(--surface2);
+    border: 1px solid #333;
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    padding: 10px 12px;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--gold);
+  }
+  select option { background: #1a1a1a; }
+
+  .btn {
+    background: var(--gold);
+    color: #0f0f0f;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 11px 18px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s;
+  }
+  .btn:hover { background: var(--gold-light); }
+  .btn.secondary {
+    background: var(--surface3);
+    color: var(--text);
+  }
+  .btn.danger { background: var(--red); color: white; }
+  .btn.full { width: 100%; margin-top: 4px; }
+
+  /* TRANSACTION LIST */
+  .tx-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #222;
+  }
+  .tx-item:last-child { border-bottom: none; }
+  .tx-left { flex: 1; }
+  .tx-desc { font-size: 13px; color: var(--text); }
+  .tx-meta { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+  .tx-amount { font-size: 14px; font-weight: 600; }
+  .tx-amount.ingreso { color: var(--green); }
+  .tx-amount.gasto { color: var(--red); }
+  .del-btn {
+    background: none; border: none; color: var(--text-dim);
+    cursor: pointer; padding: 4px 8px; font-size: 16px;
+  }
+
+  /* ROOMS */
+  .rooms-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .room-card {
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    border: 1px solid #2a2a2a;
+    position: relative;
+  }
+  .room-card.ocupada { border-left: 3px solid var(--green); }
+  .room-card.libre { border-left: 3px solid var(--text-dim); }
+  .room-card.mantenimiento { border-left: 3px solid var(--orange); }
+  .room-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    color: var(--gold);
+    line-height: 1;
+  }
+  .room-name { font-size: 12px; color: var(--text); margin-top: 4px; }
+  .room-price { font-size: 11px; color: var(--text-dim); }
+  .room-status {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 6px;
+    font-weight: 600;
+  }
+  .room-status.ocupada { color: var(--green); }
+  .room-status.libre { color: var(--text-dim); }
+  .room-status.mantenimiento { color: var(--orange); }
+  .room-edit {
+    position: absolute;
+    top: 8px; right: 8px;
+    background: none; border: none;
+    color: var(--text-dim); cursor: pointer; font-size: 14px;
+  }
+
+  /* NORMAS */
+  .norma-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid #222;
+  }
+  .norma-item:last-child { border-bottom: none; }
+  .norma-num {
+    min-width: 24px; height: 24px;
+    background: var(--gold-dim);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 600; color: var(--gold);
+    flex-shrink: 0; margin-top: 1px;
+  }
+  .norma-text { font-size: 13px; color: var(--text-mid); line-height: 1.5; flex: 1; }
+
+  /* CALENDAR */
+  .cal-day {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    margin-bottom: 6px;
+  }
+  .cal-day.today { background: var(--gold-dim); border: 1px solid rgba(201,168,76,0.3); }
+  .cal-dia-label {
+    min-width: 38px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .cal-name { font-size: 13px; color: var(--text); flex: 1; }
+  .cal-task { font-size: 11px; color: var(--text-dim); }
+
+  /* ARREGLOS */
+  .arreglo-item {
+    display: flex;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid #222;
+    align-items: flex-start;
+  }
+  .arreglo-item:last-child { border-bottom: none; }
+  .estado-badge {
+    font-size: 9px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 1px;
+    padding: 3px 8px; border-radius: 20px;
+    white-space: nowrap;
+  }
+  .estado-badge.pendiente { background: rgba(217,96,96,0.15); color: var(--red); }
+  .estado-badge.progreso { background: rgba(217,160,90,0.15); color: var(--orange); }
+  .estado-badge.listo { background: rgba(90,170,120,0.15); color: var(--green); }
+  .arreglo-desc { font-size: 13px; color: var(--text); flex: 1; }
+  .arreglo-meta { font-size: 11px; color: var(--text-dim); margin-top: 3px; }
+
+  /* LAVADO */
+  .lavado-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 0; border-bottom: 1px solid #222;
+  }
+  .lavado-item:last-child { border-bottom: none; }
+  .lavado-name { font-size: 13px; color: var(--text); }
+  .lavado-dia { font-size: 12px; color: var(--gold); font-weight: 600; }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.8); z-index: 300;
+    align-items: flex-end; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border-radius: 16px 16px 0 0;
+    padding: 20px 16px;
+    width: 100%; max-height: 90vh; overflow-y: auto;
+    border-top: 1px solid #2a2a2a;
+  }
+  .modal-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px; color: var(--gold);
+    margin-bottom: 16px;
+  }
+  .modal-actions { display: flex; gap: 8px; margin-top: 12px; }
+
+  /* TABS */
+  .tabs { display: flex; gap: 6px; margin-bottom: 14px; overflow-x: auto; padding-bottom: 2px; }
+  .tab {
+    background: var(--surface2); border: 1px solid #2a2a2a;
+    border-radius: 20px; padding: 6px 14px;
+    font-size: 12px; color: var(--text-dim); white-space: nowrap;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .tab.active { background: var(--gold-dim); border-color: var(--gold); color: var(--gold); }
+
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px; color: var(--text);
+    margin-bottom: 14px;
+  }
+  .empty-state {
+    text-align: center; padding: 30px 16px;
+    color: var(--text-dim); font-size: 13px;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <h1>Habitaciones Fátima</h1>
+  <p>Calle 65A #30-30 · Manizales · Gestión Integral</p>
+</div>
+
+<!-- SECCIONES -->
+<div id="sec-inicio" class="section active"></div>
+<div id="sec-contabilidad" class="section"></div>
+<div id="sec-piezas" class="section"></div>
+<div id="sec-calendario" class="section"></div>
+<div id="sec-arreglos" class="section"></div>
+<div id="sec-normas" class="section"></div>
+
+<!-- NAV -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" onclick="goTo('inicio',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Inicio
+  </button>
+  <button class="nav-btn" onclick="goTo('contabilidad',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+    Dinero
+  </button>
+  <button class="nav-btn" onclick="goTo('piezas',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9V20h18V9"/><rect x="1" y="4" width="22" height="5" rx="1"/><line x1="12" y1="9" x2="12" y2="20"/></svg>
+    Piezas
+  </button>
+  <button class="nav-btn" onclick="goTo('calendario',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    Turnos
+  </button>
+  <button class="nav-btn" onclick="goTo('arreglos',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+    Arreglos
+  </button>
+  <button class="nav-btn" onclick="goTo('normas',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+    Normas
+  </button>
+</nav>
+
+<!-- MODAL PIEZAS -->
+<div class="modal-overlay" id="modal-pieza">
+  <div class="modal">
+    <div class="modal-title" id="modal-pieza-title">Editar Pieza</div>
+    <input type="hidden" id="edit-room-idx">
+    <div class="form-row"><input type="text" id="edit-nombre" placeholder="Nombre del estudiante"></div>
+    <div class="form-row"><input type="number" id="edit-precio" placeholder="Precio mensual ($)"></div>
+    <div class="form-row">
+      <select id="edit-estado">
+        <option value="ocupada">Ocupada</option>
+        <option value="libre">Libre</option>
+        <option value="mantenimiento">Mantenimiento</option>
+      </select>
+    </div>
+    <div class="form-row"><input type="text" id="edit-contacto" placeholder="Teléfono / contacto"></div>
+    <div class="form-row"><input type="date" id="edit-vencimiento" placeholder="Vence pago"></div>
+    <div class="modal-actions">
+      <button class="btn full" onclick="saveRoom()">Guardar</button>
+      <button class="btn secondary full" onclick="closeModal('modal-pieza')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ARREGLO -->
+<div class="modal-overlay" id="modal-arreglo">
+  <div class="modal">
+    <div class="modal-title">Nuevo Arreglo</div>
+    <div class="form-row"><input type="text" id="arreglo-desc" placeholder="Descripción del arreglo"></div>
+    <div class="form-row"><input type="text" id="arreglo-lugar" placeholder="Lugar (ej. Pieza 3, Baño, Cocina)"></div>
+    <div class="form-row">
+      <select id="arreglo-estado">
+        <option value="pendiente">Pendiente</option>
+        <option value="progreso">En progreso</option>
+        <option value="listo">Listo</option>
+      </select>
+    </div>
+    <div class="form-row"><input type="number" id="arreglo-costo" placeholder="Costo estimado ($) — opcional"></div>
+    <div class="modal-actions">
+      <button class="btn full" onclick="saveArreglo()">Guardar</button>
+      <button class="btn secondary full" onclick="closeModal('modal-arreglo')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL TRANSACCIÓN -->
+<div class="modal-overlay" id="modal-tx">
+  <div class="modal">
+    <div class="modal-title">Nueva Transacción</div>
+    <div class="form-row">
+      <select id="tx-tipo">
+        <option value="ingreso">Ingreso</option>
+        <option value="gasto">Gasto</option>
+      </select>
+    </div>
+    <div class="form-row"><input type="text" id="tx-desc" placeholder="Descripción (ej. Arriendo pieza 3)"></div>
+    <div class="form-row"><input type="number" id="tx-monto" placeholder="Monto ($)"></div>
+    <div class="form-row"><input type="text" id="tx-cat" placeholder="Categoría (ej. Arriendo, Servicios, Reparación)"></div>
+    <div class="form-row"><input type="date" id="tx-fecha"></div>
+    <div class="modal-actions">
+      <button class="btn full" onclick="saveTx()">Guardar</button>
+      <button class="btn secondary full" onclick="closeModal('modal-tx')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL LAVADO -->
+<div class="modal-overlay" id="modal-lavado">
+  <div class="modal">
+    <div class="modal-title">Asignar Día de Lavado</div>
+    <div class="form-row"><input type="text" id="lavado-nombre" placeholder="Nombre del estudiante"></div>
+    <div class="form-row">
+      <select id="lavado-dia">
+        <option value="Lunes">Lunes</option>
+        <option value="Martes">Martes</option>
+        <option value="Miércoles">Miércoles</option>
+        <option value="Jueves">Jueves</option>
+        <option value="Viernes">Viernes</option>
+        <option value="Sábado">Sábado</option>
+        <option value="Domingo">Domingo</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn full" onclick="saveLavado()">Guardar</button>
+      <button class="btn secondary full" onclick="closeModal('modal-lavado')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===================== STORAGE =====================
+const KEYS = {
+  rooms: 'fatima_rooms',
+  txs: 'fatima_txs',
+  arreglos: 'fatima_arreglos',
+  lavados: 'fatima_lavados',
+  aseo: 'fatima_aseo',
+  normas: 'fatima_normas'
+};
+
+function load(key, def) {
+  try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : def; }
+  catch { return def; }
+}
+function save(key, val) {
+  try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
+}
+
+// ===================== STATE =====================
+let rooms = load(KEYS.rooms, Array.from({length:8},(_,i)=>({
+  num: i+1, nombre:'', precio:0, estado:'ocupada', contacto:'', vencimiento:''
+})));
+
+let txs = load(KEYS.txs, []);
+let arreglos = load(KEYS.arreglos, []);
+let lavados = load(KEYS.lavados, []);
+let normas = load(KEYS.normas, [
+  'No se permiten visitas después de las 10:00 pm.',
+  'El aseo de las zonas comunes es responsabilidad de todos según el calendario asignado.',
+  'Queda prohibido fumar dentro de la vivienda.',
+  'El día de lavado asignado debe respetarse para evitar conflictos.',
+  'Los daños causados por mal uso serán responsabilidad del arrendatario.',
+  'Se debe reportar cualquier avería al arrendador dentro de las 24 horas.',
+  'El pago del arriendo se realiza los primeros 5 días de cada mes.',
+  'No se permite el ingreso de mascotas.',
+  'El volumen de música o televisión debe ser moderado después de las 9:00 pm.',
+  'Cada arrendatario es responsable de mantener limpia y ordenada su pieza.'
+]);
+
+const diasSemana = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const aseoTareas = [
+  {tarea:'Barrer y trapear pasillos'},
+  {tarea:'Limpiar baños comunes'},
+  {tarea:'Limpiar cocina y mesones'},
+  {tarea:'Sacar basura y revisar canecas'},
+  {tarea:'Limpiar lavadero y patio'},
+  {tarea:'Barrer escalera y entrada'},
+  {tarea:'Revisión general + limpiar ventanas'}
+];
+
+// ===================== NAVIGATION =====================
+function goTo(id, btn) {
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('active');
+  btn.classList.add('active');
+  render(id);
+}
+
+function render(id) {
+  if(id==='inicio') renderInicio();
+  if(id==='contabilidad') renderContabilidad();
+  if(id==='piezas') renderPiezas();
+  if(id==='calendario') renderCalendario();
+  if(id==='arreglos') renderArreglos();
+  if(id==='normas') renderNormas();
+}
+
+// ===================== INICIO =====================
+function renderInicio() {
+  const ocupadas = rooms.filter(r=>r.estado==='ocupada').length;
+  const ingresoMes = txs.filter(t=>t.tipo==='ingreso' && isThisMonth(t.fecha)).reduce((a,t)=>a+t.monto,0);
+  const gastoMes = txs.filter(t=>t.tipo==='gasto' && isThisMonth(t.fecha)).reduce((a,t)=>a+t.monto,0);
+  const arreglosPend = arreglos.filter(a=>a.estado==='pendiente').length;
+  const hoy = new Date().getDay();
+  const aseoHoy = getAseoHoy();
+
+  document.getElementById('sec-inicio').innerHTML = `
+    <div class="section-title">Resumen</div>
+    <div class="summary-grid">
+      <div class="summary-card">
+        <div class="label">Piezas Ocupadas</div>
+        <div class="value gold">${ocupadas} / ${rooms.length}</div>
+      </div>
+      <div class="summary-card">
+        <div class="label">Ingreso del mes</div>
+        <div class="value green">${fmt(ingresoMes)}</div>
+      </div>
+      <div class="summary-card">
+        <div class="label">Gastos del mes</div>
+        <div class="value red">${fmt(gastoMes)}</div>
+      </div>
+      <div class="summary-card">
+        <div class="label">Balance</div>
+        <div class="value ${ingresoMes-gastoMes>=0?'green':'red'}">${fmt(ingresoMes-gastoMes)}</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🧹 Aseo de Hoy — ${diasSemana[hoy]}</div>
+      ${aseoHoy ? `
+        <div style="font-size:14px;color:var(--text);margin-bottom:4px;">${aseoHoy.nombre || '<em style="color:var(--text-dim)">Sin asignar</em>'}</div>
+        <div style="font-size:12px;color:var(--text-dim);">${aseoTareas[hoy % 7].tarea}</div>
+      ` : `<div style="font-size:13px;color:var(--text-dim);">Sin turno asignado para hoy</div>`}
+    </div>
+
+    ${arreglosPend > 0 ? `
+    <div class="card" style="border-left:3px solid var(--red)">
+      <div class="card-title">🔧 Arreglos Pendientes</div>
+      <div style="font-size:14px;color:var(--red);">${arreglosPend} arreglo${arreglosPend>1?'s':''} pendiente${arreglosPend>1?'s':''}</div>
+      <div style="font-size:12px;color:var(--text-dim);margin-top:4px;">Ve a la sección Arreglos para gestionar</div>
+    </div>
+    ` : ''}
+
+    <div class="card">
+      <div class="card-title">📋 Accesos Rápidos</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button class="btn secondary" onclick="openModal('modal-tx')">+ Transacción</button>
+        <button class="btn secondary" onclick="openModal('modal-arreglo')">+ Arreglo</button>
+        <button class="btn secondary" onclick="openModal('modal-lavado')">+ Turno lavado</button>
+        <button class="btn secondary" style="background:var(--gold-dim);color:var(--gold)" onclick="document.querySelector('.nav-btn:nth-child(3)').click()">Ver Piezas</button>
+      </div>
+    </div>
+  `;
+}
+
+// ===================== CONTABILIDAD =====================
+function renderContabilidad(tab='todo') {
+  const ingresoMes = txs.filter(t=>t.tipo==='ingreso' && isThisMonth(t.fecha)).reduce((a,t)=>a+t.monto,0);
+  const gastoMes = txs.filter(t=>t.tipo==='gasto' && isThisMonth(t.fecha)).reduce((a,t)=>a+t.monto,0);
+  let filtered = [...txs].sort((a,b)=>new Date(b.fecha)-new Date(a.fecha));
+  if(tab==='ingresos') filtered = filtered.filter(t=>t.tipo==='ingreso');
+  if(tab==='gastos') filtered = filtered.filter(t=>t.tipo==='gasto');
+
+  document.getElementById('sec-contabilidad').innerHTML = `
+    <div class="section-title">Contabilidad</div>
+    <div class="summary-grid">
+      <div class="summary-card">
+        <div class="label">Ingresos mes</div>
+        <div class="value green">${fmt(ingresoMes)}</div>
+      </div>
+      <div class="summary-card">
+        <div class="label">Gastos mes</div>
+        <div class="value red">${fmt(gastoMes)}</div>
+      </div>
+    </div>
+    <div class="summary-card" style="margin-bottom:14px;text-align:center">
+      <div class="label" style="margin-bottom:4px">Balance del Mes</div>
+      <div class="value ${ingresoMes-gastoMes>=0?'green':'red'}" style="font-size:24px">${fmt(ingresoMes-gastoMes)}</div>
+    </div>
+    <button class="btn full" style="margin-bottom:14px" onclick="openModal('modal-tx')">+ Nueva Transacción</button>
+    <div class="tabs">
+      <div class="tab ${tab==='todo'?'active':''}" onclick="renderContabilidad('todo')">Todas</div>
+      <div class="tab ${tab==='ingresos'?'active':''}" onclick="renderContabilidad('ingresos')">Ingresos</div>
+      <div class="tab ${tab==='gastos'?'active':''}" onclick="renderContabilidad('gastos')">Gastos</div>
+    </div>
+    <div class="card">
+      ${filtered.length === 0 ? '<div class="empty-state">Sin transacciones registradas</div>' :
+        filtered.map((t,i)=>`
+          <div class="tx-item">
+            <div class="tx-left">
+              <div class="tx-desc">${t.desc}</div>
+              <div class="tx-meta">${t.cat} · ${fmtFecha(t.fecha)}</div>
+            </div>
+            <div class="tx-amount ${t.tipo}">${t.tipo==='ingreso'?'+':'-'}${fmt(t.monto)}</div>
+            <button class="del-btn" onclick="delTx(${txs.indexOf(t)})">×</button>
+          </div>
+        `).join('')
+      }
+    </div>
+  `;
+}
+
+// ===================== PIEZAS =====================
+function renderPiezas() {
+  document.getElementById('sec-piezas').innerHTML = `
+    <div class="section-title">Piezas</div>
+    <div style="display:flex;gap:8px;margin-bottom:12px;font-size:11px;color:var(--text-dim)">
+      <span>🟢 Ocupada</span><span>⚪ Libre</span><span>🟠 Mantenimiento</span>
+    </div>
+    <div class="rooms-grid">
+      ${rooms.map((r,i)=>`
+        <div class="room-card ${r.estado}">
+          <button class="room-edit" onclick="editRoom(${i})">✏️</button>
+          <div class="room-num">#${r.num}</div>
+          <div class="room-name">${r.nombre || '<span style="color:var(--text-dim);font-style:italic">Sin nombre</span>'}</div>
+          <div class="room-price">${r.precio ? fmt(r.precio)+'/mes' : 'Sin precio'}</div>
+          ${r.vencimiento ? `<div class="room-price">Vence: ${fmtFecha(r.vencimiento)}</div>`:''}
+          ${r.contacto ? `<div class="room-price">📞 ${r.contacto}</div>`:''}
+          <div class="room-status ${r.estado}">${r.estado}</div>
+        </div>
+      `).join('')}
+    </div>
+    <div style="margin-top:12px;font-size:12px;color:var(--text-dim);text-align:center">
+      Toca ✏️ en cualquier pieza para editar
+    </div>
+  `;
+}
+
+// ===================== CALENDARIO =====================
+function renderCalendario(tab='aseo') {
+  const hoyIdx = new Date().getDay();
+  document.getElementById('sec-calendario').innerHTML = `
+    <div class="section-title">Calendarios</div>
+    <div class="tabs">
+      <div class="tab ${tab==='aseo'?'active':''}" onclick="renderCalendario('aseo')">🧹 Aseo Diario</div>
+      <div class="tab ${tab==='lavado'?'active':''}" onclick="renderCalendario('lavado')">👕 Lavado</div>
+    </div>
+    ${tab==='aseo' ? renderAseo(hoyIdx) : renderLavado()}
+  `;
+}
+
+function renderAseo(hoyIdx) {
+  let aseo = load(KEYS.aseo, Array(7).fill(''));
+  return `
+    <div class="card">
+      <div class="card-title">Turno de Aseo por Día</div>
+      ${diasSemana.map((dia,i)=>`
+        <div class="cal-day ${i===hoyIdx?'today':''}">
+          <div class="cal-dia-label">${dia.slice(0,3)}</div>
+          <div class="cal-name">${aseo[i] || '<span style="color:var(--text-dim);font-style:italic">Sin asignar</span>'}</div>
+          <div class="cal-task" style="font-size:10px;max-width:90px">${aseoTareas[i].tarea}</div>
+        </div>
+      `).join('')}
+    </div>
+    <div class="card" style="margin-top:8px">
+      <div class="card-title">Editar Asignaciones</div>
+      ${diasSemana.map((dia,i)=>`
+        <div class="form-row" style="align-items:center;gap:8px;margin-bottom:8px">
+          <div style="min-width:50px;font-size:12px;color:var(--gold)">${dia.slice(0,3)}</div>
+          <input type="text" placeholder="Nombre" value="${aseo[i]||''}" oninput="updateAseo(${i},this.value)" style="font-size:12px;padding:7px 10px">
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function updateAseo(i, val) {
+  let aseo = load(KEYS.aseo, Array(7).fill(''));
+  aseo[i] = val;
+  save(KEYS.aseo, aseo);
+}
+
+function getAseoHoy() {
+  const hoy = new Date().getDay();
+  const aseo = load(KEYS.aseo, Array(7).fill(''));
+  return aseo[hoy] ? {nombre: aseo[hoy]} : null;
+}
+
+function renderLavado() {
+  return `
+    <div class="card">
+      <div class="card-title">Días de Lavado Asignados</div>
+      ${lavados.length === 0 ? '<div class="empty-state">Sin turnos asignados</div>' :
+        lavados.map((l,i)=>`
+          <div class="lavado-item">
+            <div class="lavado-name">${l.nombre}</div>
+            <div class="lavado-dia">${l.dia}</div>
+            <button class="del-btn" onclick="delLavado(${i})">×</button>
+          </div>
+        `).join('')
+      }
+    </div>
+    <button class="btn full" onclick="openModal('modal-lavado')">+ Asignar Turno</button>
+    <div class="card" style="margin-top:12px">
+      <div class="card-title">⚠️ Reglas de Lavado</div>
+      <div style="font-size:12px;color:var(--text-mid);line-height:1.7">
+        • Cada estudiante tiene asignado un día específico.<br>
+        • No está permitido usar la lavadora fuera del día asignado.<br>
+        • Recoger la ropa máximo 2 horas después de terminar el lavado.<br>
+        • Dejar la lavadora y el lavadero limpios al terminar.<br>
+        • Cambios de día deben ser acordados entre los involucrados.
+      </div>
+    </div>
+  `;
+}
+
+// ===================== ARREGLOS =====================
+function renderArreglos(tab='todos') {
+  let filtrados = [...arreglos].sort((a,b)=>b.id-a.id);
+  if(tab==='pendiente') filtrados = filtrados.filter(a=>a.estado==='pendiente');
+  if(tab==='progreso') filtrados = filtrados.filter(a=>a.estado==='progreso');
+  if(tab==='listo') filtrados = filtrados.filter(a=>a.estado==='listo');
+  const costoTotal = arreglos.filter(a=>a.costo).reduce((s,a)=>s+a.costo,0);
+
+  document.getElementById('sec-arreglos').innerHTML = `
+    <div class="section-title">Arreglos y Mantenimiento</div>
+    ${costoTotal ? `<div class="summary-card" style="margin-bottom:12px"><div class="label">Costo total estimado</div><div class="value red">${fmt(costoTotal)}</div></div>`:''}
+    <button class="btn full" style="margin-bottom:14px" onclick="openModal('modal-arreglo')">+ Nuevo Arreglo</button>
+    <div class="tabs">
+      <div class="tab ${tab==='todos'?'active':''}" onclick="renderArreglos('todos')">Todos</div>
+      <div class="tab ${tab==='pendiente'?'active':''}" onclick="renderArreglos('pendiente')">Pendientes</div>
+      <div class="tab ${tab==='progreso'?'active':''}" onclick="renderArreglos('progreso')">En progreso</div>
+      <div class="tab ${tab==='listo'?'active':''}" onclick="renderArreglos('listo')">Listos</div>
+    </div>
+    <div class="card">
+      ${filtrados.length === 0 ? '<div class="empty-state">Sin arreglos en esta categoría</div>' :
+        filtrados.map((a,i)=>`
+          <div class="arreglo-item">
+            <div style="flex:1">
+              <div style="display:flex;gap:8px;align-items:center;margin-bottom:4px">
+                <span class="estado-badge ${a.estado}">${a.estado}</span>
+                <span style="font-size:11px;color:var(--text-dim)">${a.lugar}</span>
+              </div>
+              <div class="arreglo-desc">${a.desc}</div>
+              ${a.costo ? `<div class="arreglo-meta">Costo est.: ${fmt(a.costo)}</div>`:''}
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <select onchange="cambiarEstadoArreglo(${arreglos.indexOf(a)},this.value)" style="font-size:11px;padding:4px 6px;width:90px">
+                <option ${a.estado==='pendiente'?'selected':''} value="pendiente">Pendiente</option>
+                <option ${a.estado==='progreso'?'selected':''} value="progreso">Progreso</option>
+                <option ${a.estado==='listo'?'selected':''} value="listo">Listo</option>
+              </select>
+              <button class="del-btn" onclick="delArreglo(${arreglos.indexOf(a)})">×</button>
+            </div>
+          </div>
+        `).join('')
+      }
+    </div>
+  `;
+}
+
+// ===================== NORMAS =====================
+function renderNormas() {
+  document.getElementById('sec-normas').innerHTML = `
+    <div class="section-title">Normas de Convivencia</div>
+    <div style="background:var(--gold-dim);border:1px solid rgba(201,168,76,0.2);border-radius:var(--radius);padding:12px 14px;margin-bottom:14px">
+      <div style="font-size:11px;color:var(--gold);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">Habitaciones Fátima</div>
+      <div style="font-size:11px;color:var(--text-mid)">Calle 65A #30-30 · Manizales</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Reglamento Interno</div>
+      ${normas.map((n,i)=>`
+        <div class="norma-item">
+          <div class="norma-num">${i+1}</div>
+          <div class="norma-text">${n}</div>
+          <button class="del-btn" onclick="delNorma(${i})">×</button>
+        </div>
+      `).join('')}
+    </div>
+    <div class="card">
+      <div class="card-title">Agregar Norma</div>
+      <textarea id="nueva-norma" rows="3" placeholder="Escribe la nueva norma aquí..." style="resize:none;width:100%"></textarea>
+      <button class="btn full" onclick="addNorma()" style="margin-top:8px">Agregar</button>
+    </div>
+    <div class="card">
+      <div class="card-title">📌 Responsabilidades</div>
+      <div style="font-size:12px;color:var(--text-mid);line-height:1.8">
+        <strong style="color:var(--gold)">Arrendador:</strong><br>
+        • Mantener en buen estado las instalaciones<br>
+        • Atender solicitudes de reparación<br>
+        • Respetar la privacidad de los arrendatarios<br><br>
+        <strong style="color:var(--gold)">Arrendatarios:</strong><br>
+        • Pagar puntualmente el arriendo<br>
+        • Cumplir el calendario de aseo y lavado<br>
+        • Reportar daños o averías<br>
+        • Respetar a los demás compañeros
+      </div>
+    </div>
+  `;
+}
+
+// ===================== ACTIONS =====================
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  if(id==='modal-tx') {
+    const hoy = new Date().toISOString().split('T')[0];
+    document.getElementById('tx-fecha').value = hoy;
+  }
+}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function editRoom(i) {
+  const r = rooms[i];
+  document.getElementById('edit-room-idx').value = i;
+  document.getElementById('modal-pieza-title').textContent = `Pieza #${r.num}`;
+  document.getElementById('edit-nombre').value = r.nombre;
+  document.getElementById('edit-precio').value = r.precio;
+  document.getElementById('edit-estado').value = r.estado;
+  document.getElementById('edit-contacto').value = r.contacto;
+  document.getElementById('edit-vencimiento').value = r.vencimiento;
+  openModal('modal-pieza');
+}
+
+function saveRoom() {
+  const i = parseInt(document.getElementById('edit-room-idx').value);
+  rooms[i].nombre = document.getElementById('edit-nombre').value;
+  rooms[i].precio = parseFloat(document.getElementById('edit-precio').value) || 0;
+  rooms[i].estado = document.getElementById('edit-estado').value;
+  rooms[i].contacto = document.getElementById('edit-contacto').value;
+  rooms[i].vencimiento = document.getElementById('edit-vencimiento').value;
+  save(KEYS.rooms, rooms);
+  closeModal('modal-pieza');
+  renderPiezas();
+}
+
+function saveTx() {
+  const tx = {
+    tipo: document.getElementById('tx-tipo').value,
+    desc: document.getElementById('tx-desc').value,
+    monto: parseFloat(document.getElementById('tx-monto').value) || 0,
+    cat: document.getElementById('tx-cat').value || 'General',
+    fecha: document.getElementById('tx-fecha').value,
+    id: Date.now()
+  };
+  if(!tx.desc || !tx.monto) return;
+  txs.push(tx);
+  save(KEYS.txs, txs);
+  closeModal('modal-tx');
+  ['tx-desc','tx-monto','tx-cat'].forEach(id=>document.getElementById(id).value='');
+  renderInicio();
+  if(document.getElementById('sec-contabilidad').classList.contains('active')) renderContabilidad();
+}
+
+function delTx(i) { txs.splice(i,1); save(KEYS.txs,txs); renderContabilidad(); }
+
+function saveArreglo() {
+  const a = {
+    desc: document.getElementById('arreglo-desc').value,
+    lugar: document.getElementById('arreglo-lugar').value || 'General',
+    estado: document.getElementById('arreglo-estado').value,
+    costo: parseFloat(document.getElementById('arreglo-costo').value) || 0,
+    id: Date.now()
+  };
+  if(!a.desc) return;
+  arreglos.push(a);
+  save(KEYS.arreglos, arreglos);
+  closeModal('modal-arreglo');
+  ['arreglo-desc','arreglo-lugar','arreglo-costo'].forEach(id=>document.getElementById(id).value='');
+  renderArreglos();
+}
+
+function delArreglo(i) { arreglos.splice(i,1); save(KEYS.arreglos,arreglos); renderArreglos(); }
+
+function cambiarEstadoArreglo(i, estado) {
+  arreglos[i].estado = estado;
+  save(KEYS.arreglos, arreglos);
+}
+
+function saveLavado() {
+  const l = {
+    nombre: document.getElementById('lavado-nombre').value,
+    dia: document.getElementById('lavado-dia').value
+  };
+  if(!l.nombre) return;
+  lavados.push(l);
+  save(KEYS.lavados, lavados);
+  closeModal('modal-lavado');
+  document.getElementById('lavado-nombre').value = '';
+  if(document.getElementById('sec-calendario').classList.contains('active')) renderCalendario('lavado');
+}
+
+function delLavado(i) { lavados.splice(i,1); save(KEYS.lavados,lavados); renderCalendario('lavado'); }
+
+function addNorma() {
+  const v = document.getElementById('nueva-norma').value.trim();
+  if(!v) return;
+  normas.push(v);
+  save(KEYS.normas, normas);
+  renderNormas();
+}
+
+function delNorma(i) { normas.splice(i,1); save(KEYS.normas,normas); renderNormas(); }
+
+// ===================== UTILS =====================
+function fmt(n) {
+  return '$' + Math.round(n).toLocaleString('es-CO');
+}
+function fmtFecha(f) {
+  if(!f) return '';
+  const d = new Date(f + 'T00:00:00');
+  return d.toLocaleDateString('es-CO', {day:'2-digit',month:'short',year:'numeric'});
+}
+function isThisMonth(fecha) {
+  if(!fecha) return false;
+  const d = new Date(fecha);
+  const now = new Date();
+  return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
+}
+
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(o=>{
+  o.addEventListener('click',e=>{ if(e.target===o) o.classList.remove('open'); });
+});
+
+// Init
+renderInicio();
+</script>
+</body>
+</html>
